@@ -1,11 +1,10 @@
 version: "3.8"
 services:
-  # Sysbox-based DinD - The superior approach!
   dind:
     image: docker:dind
-    runtime: sysbox-runc  # ⬅️ This is the magic of Sysbox!
+    privileged: true
     environment:
-      - DOCKER_TLS_CERTDIR=  # Disable TLS for simplicity
+      - DOCKER_TLS_CERTDIR=
     command:
       - --host=tcp://0.0.0.0:2375
       - --host=unix:///var/run/docker.sock
@@ -19,7 +18,6 @@ services:
       start_period: 30s
     networks: [dind-network]
 
-  # CI Runner - Same as traditional but optimized for Sysbox
   ci-runner:
     image: alpine:3.20
     depends_on:

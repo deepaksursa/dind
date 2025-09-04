@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Setting up Sysbox in GitHub Codespaces..."
+echo "🚀 Setting up Docker in GitHub Codespaces..."
 
 # Update package list
 sudo apt update
@@ -16,19 +16,5 @@ if ! command -v docker &> /dev/null; then
     sudo usermod -aG docker $USER
 fi
 
-# Install Sysbox
-echo "Installing Sysbox..."
-curl -fsSL https://downloads.nestybox.com/sysbox/releases/0.7.2/sysbox-ce_0.7.2-0.linux_amd64.deb -o sysbox.deb
-sudo dpkg -i sysbox.deb
-sudo apt-get install -f
-
-# Start Sysbox service
-sudo systemctl start sysbox
-sudo systemctl enable sysbox
-
-# Restart Docker daemon
-sudo systemctl restart docker
-
-echo "✅ Sysbox installed successfully!"
-echo "🔄 Please restart your Codespace or run: sudo systemctl restart docker"
+echo "✅ Docker installed successfully!"
 echo "🧪 Test with: docker compose up --build"
