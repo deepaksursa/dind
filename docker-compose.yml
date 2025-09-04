@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+  dind:
+    image: docker:27-dind
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=        # ⬅️ truly empty disables TLS
+    command:
+      - --host=tcp://0.0.0.0:2375
+      - --host=unix:///var/run/docker.sock
+    volumes:
+      - dind-lib:/var/lib/docker
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks: [dind-network]
+
+  ci-runner:
+    image: alpine:3.20
+    depends_on:
+      dind:
+        condition: service_healthy
+    environment:
+      - DOCKER_HOST=tcp://dind:2375   # ⬅️ matches TLS-OFF
+    volumes:
+      - ./app:/app
+      - ./ci:/ci
+    working_dir: /ci
+    command: ["/bin/sh","-c","apk add --no-cache docker-cli curl && chmod +x run.sh && ./run.sh"]
+    networks: [dind-network]
+
+volumes:
+  dind-lib:
+
+networks:
+  dind-network:
+    driver: bridge
