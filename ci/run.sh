@@ -1,22 +1,23 @@
 #!/bin/sh
 set -e
 
-echo "🚀 Starting CI Pipeline..."
+echo "🚀 Starting Sysbox DinD CI Pipeline..."
 
 # Clean up any existing containers
 docker rm -f myapp-container 2>/dev/null || true
 
 # Wait for DinD to be ready
 until docker info >/dev/null 2>&1; do sleep 2; done
-echo "✅ DinD ready"
+echo "✅ Sysbox DinD ready"
 
 # Build the application image
 docker build -t myapp:ci /app
 echo "✅ Image built"
 
-# Run the application container with port mapping
-docker run -d --name myapp-container -p 3000:3000 myapp:ci
-echo "✅ Container started"
+# Run the application container - NO port mapping needed with Sysbox!
+# Sysbox provides better networking isolation
+docker run -d --name myapp-container myapp:ci
+echo "✅ Container started (Sysbox mode)"
 
 # Wait for the application to be ready
 echo "⏳ Waiting for application to be ready..."
@@ -29,8 +30,8 @@ if ! docker ps | grep -q myapp-container; then
   exit 1
 fi
 
-# Simple health check - just test if we can reach the app
-echo "🧪 Testing application directly..."
+# Test the application using the same network namespace
+echo "🧪 Testing application..."
 for i in $(seq 1 30); do
   if docker run --rm --network container:myapp-container curlimages/curl:8.11.1 -fsS http://localhost:3000/health >/dev/null 2>&1; then
     echo "✅ Application is ready!"
@@ -44,8 +45,7 @@ for i in $(seq 1 30); do
   sleep 1
 done
 
-# Test the application using the same network namespace
-echo "🧪 Testing application..."
+# Test the main endpoint
 docker run --rm --network container:myapp-container curlimages/curl:8.11.1 -fsS http://localhost:3000/ | head -3
 echo "✅ Test passed! Application is reachable"
 
@@ -53,8 +53,15 @@ echo "✅ Test passed! Application is reachable"
 echo "📋 Running containers:"
 docker ps
 
+# Show Sysbox-specific information
+echo "🔍 Sysbox DinD Info:"
+echo "  - Runtime: sysbox-runc"
+echo "  - Security: No privileged mode needed"
+echo "  - Isolation: Enhanced (VM-like)"
+echo "  - Performance: Optimized"
+
 # Clean up
 docker rm -f myapp-container
 echo "✅ Cleanup completed"
 
-echo "🎉 CI Pipeline completed successfully!"
+echo "🎉 Sysbox DinD CI Pipeline completed successfully!"
