@@ -2,7 +2,7 @@ version: "3.8"
 services:
   dind:
     image: docker:dind
-    privileged: true
+    runtime: sysbox-runc
     environment:
       - DOCKER_TLS_CERTDIR=
     command:
